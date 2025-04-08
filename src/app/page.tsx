@@ -3,6 +3,7 @@
 import { Loader } from "lucide-react";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { NICKNAME_STORAGE_KEY } from "@/utils/constants";
 
 export default function HomePage() {
   const router = useRouter();
@@ -34,7 +35,8 @@ export default function HomePage() {
 
       if (response.ok) {
         if (typeof localStorage !== "undefined") {
-          localStorage.setItem(`@temp-link/nickname`, nickname);
+          console.log("Setting nickname in localStorage");
+          localStorage.setItem(NICKNAME_STORAGE_KEY, nickname);
         }
 
         router.replace(`/create-room?nickname=${nickname}`);

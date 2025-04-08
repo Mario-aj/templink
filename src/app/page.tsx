@@ -1,103 +1,124 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { Loader } from "lucide-react";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function HomePage() {
+  const router = useRouter();
+
+  const [nickname, setNickname] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setLoading(true);
+    setError("");
+
+    if (!nickname.trim()) {
+      setError("Please enter a nickname");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/create/nickname", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (typeof localStorage !== "undefined") {
+          localStorage.setItem(`@temp-link/nickname`, nickname);
+        }
+
+        router.replace(`/create-room?nickname=${nickname}`);
+      } else {
+        setError(data.message || "An error occurred");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Failed to connect to the server");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-br from-white to-gray-100 text-gray-900 font-sans">
+      <header className="flex items-center justify-between px-6 py-4 shadow-md bg-white">
+        <div className="flex items-center gap-3">
+          <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 shadow-lg flex items-center justify-center">
+            <div className="absolute w-1.5 h-4 bg-white rotate-45 top-2 left-2 rounded-sm"></div>
+            <div className="absolute w-1.5 h-4 bg-white -rotate-45 bottom-2 right-2 rounded-sm"></div>
+            <div className="absolute bottom-[-6px] left-[12px] w-3 h-3 bg-gradient-to-br from-blue-500 to-violet-500 rotate-45 shadow-md"></div>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <h1 className="text-2xl font-semibold">
+            Temp<span className="text-violet-600">Link</span>
+          </h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </header>
+
+      <section className="flex flex-col items-center justify-center text-center px-6 py-6 sm:py-12 md:py-16">
+        <h2 className="text-4xl font-bold mb-4">
+          One Link. One Room. Then Gone.
+        </h2>
+
+        <p className="text-lg text-gray-600 max-w-xl">
+          TempLink lets you connect in real-time through secure, peer-to-peer
+          messaging. No sign-ups. No traces. Just ephemeral conversations.
+        </p>
+      </section>
+
+      <div className="flex align-center justify-center shadow-lg w-[fit-content] m-auto p-4 rounded-lg inset-shadow-xs">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <fieldset>
+            <label htmlFor="nickname" className="inline-block mb-2">
+              Nickname
+            </label>
+
+            <input
+              type="text"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                error ? "border-red-500" : ""
+              }`}
+              placeholder="Your nickname"
+            />
+          </fieldset>
+
+          {error ? (
+            <p className="text-red-500 text-sm -mt-4">{error}</p>
+          ) : (
+            <p className="text-gray-500 text-sm -mt-4">
+              This will be your display name for the duration of the chat.
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-500 to-violet-600 text-white py-3 rounded-lg font-semibold shadow cursor-pointer hover:shadow-lg transition duration-300 ease-in-out disabled:bg-gradient-to-r disabled:from-gray-200 disabled:to-gray-300 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {loading && (
+              <Loader
+                className="inline-block animate-spin"
+                size={22}
+                color="white"
+              />
+            )}{" "}
+            Continue
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

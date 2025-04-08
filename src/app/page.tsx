@@ -35,7 +35,6 @@ export default function HomePage() {
 
       if (response.ok) {
         if (typeof localStorage !== "undefined") {
-          console.log("Setting nickname in localStorage");
           localStorage.setItem(NICKNAME_STORAGE_KEY, nickname);
         }
 

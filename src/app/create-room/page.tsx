@@ -1,13 +1,16 @@
 "use client";
 
+import { socket } from "@/socket";
 import { NICKNAME_STORAGE_KEY } from "@/utils/constants";
 import { Loader } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 export default function CreateRoomPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const [isConnected, setIsConnected] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -62,6 +65,28 @@ export default function CreateRoomPage() {
     }
   }, [nickname, router]);
 
+  useEffect(() => {
+    if (socket.connected) {
+      onConnect();
+    }
+
+    function onConnect() {
+      setIsConnected(true);
+    }
+
+    function onDisconnect() {
+      setIsConnected(false);
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -80,9 +105,10 @@ export default function CreateRoomPage() {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-700">Create Room</h2>
           <button
+            title={!isConnected ? "Connecting to socket server" : ""}
             onClick={handleCreateRoom}
-            disabled={creating}
-            className="w-full bg-gradient-to-r from-blue-500 to-violet-600 text-white py-3 rounded-lg font-semibold shadow hover:scale-105 transition-transform disabled:opacity-50"
+            disabled={!isConnected || creating}
+            className="w-full bg-gradient-to-r from-blue-500 to-violet-600 text-white py-3 rounded-lg font-semibold disabled:cursor-not-allowed shadow hover:scale-105 transition-transform disabled:opacity-50"
           >
             {creating ? "Creating..." : "Generate Room Code"}
           </button>

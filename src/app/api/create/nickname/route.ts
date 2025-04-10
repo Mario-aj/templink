@@ -22,8 +22,6 @@ export async function POST(req: Request) {
       nicknames = JSON.parse(fileContent);
     }
 
-    console.log("Nicknames:", nicknames);
-
     if (nicknames.includes(nickname)) {
       return Response.json(
         { message: "Nickname is already in use" },

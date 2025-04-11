@@ -2,6 +2,8 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 
+import { createRoom } from "./src/socket/handlers";
+
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
@@ -22,12 +24,11 @@ app.prepare().then(() => {
   const io = new Server(httpServer);
 
   io.on("connection", (socket) => {
-    console.log("New client connected: ", socket.id);
-
-    socket.on("create-nickname", (nickname) => {
-      console.log("Nickname received: ", nickname);
-      socket.emit("nickname-created", nickname);
-    });
+    socket.on("create-room", (data) =>
+      createRoom(socket, data, (response) => {
+        socket.emit("room-created", response);
+      })
+    );
   });
 
   httpServer

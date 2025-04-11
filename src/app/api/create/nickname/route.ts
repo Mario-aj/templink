@@ -1,7 +1,4 @@
-import fs from "fs";
-import path from "path";
-
-const NICKNAMES_FILE = path.join(process.cwd(), "tmp", "nicknames.json");
+import { getFileContent, writeFileContent } from "@/utils/fileManipulations";
 
 export async function POST(req: Request) {
   const { nickname } = await req.json();
@@ -11,16 +8,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    if (!fs.existsSync(path.dirname(NICKNAMES_FILE))) {
-      fs.mkdirSync(path.dirname(NICKNAMES_FILE), { recursive: true });
-    }
-
-    let nicknames = [];
-
-    if (fs.existsSync(NICKNAMES_FILE)) {
-      const fileContent = fs.readFileSync(NICKNAMES_FILE, "utf-8");
-      nicknames = JSON.parse(fileContent);
-    }
+    const nicknames = getFileContent("nicknames");
 
     if (nicknames.includes(nickname)) {
       return Response.json(
@@ -30,7 +18,8 @@ export async function POST(req: Request) {
     }
 
     nicknames.push(nickname);
-    fs.writeFileSync(NICKNAMES_FILE, JSON.stringify(nicknames, null, 2));
+
+    writeFileContent("nicknames", nicknames);
 
     return Response.json(
       { message: "Nickname created successfully" },

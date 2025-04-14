@@ -1,5 +1,9 @@
+/// <reference lib="dom" />
 import crypto from "crypto";
-import { getFileContent, writeFileContent } from "@/utils/fileManipulations";
+import {
+  getFileContent,
+  writeFileContent,
+} from "../../utils/fileManipulations";
 
 interface CreateRoomParams {
   offer: RTCSessionDescriptionInit;

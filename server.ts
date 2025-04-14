@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 
-import { createRoom } from './src/socket/handlers/index.ts'
+import { createRoom } from "./src/socket/handlers";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -25,7 +25,7 @@ app.prepare().then(() => {
 
   io.on("connection", (socket) => {
     socket.on("create-room", (data) =>
-      createRoom(socket, data, (response) => {
+      createRoom(data, (response) => {
         socket.emit("room-created", response);
       })
     );

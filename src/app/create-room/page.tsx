@@ -6,6 +6,7 @@ import { NICKNAME_STORAGE_KEY } from "@/utils/constants";
 import { Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import webRTC from "@/webrtc";
 
 export default function CreateRoomPage() {
   const router = useRouter();
@@ -18,33 +19,22 @@ export default function CreateRoomPage() {
   const [roomId, setRoomId] = useState("");
   const [nickname, setNickname] = useState("");
 
-  const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
-  const [peerConnection, setPeerConnection] =
-    useState<RTCPeerConnection | null>(null);
-
   const setupPeerConnection = useCallback(() => {
-    const pc = new RTCPeerConnection();
-    const dc = pc.createDataChannel("templink-chat-channel");
-
-    setDataChannel(dc);
-    setPeerConnection(pc);
-
-    dc.onopen = () => {
+    webRTC.dataChannel.onopen = () => {
       console.log("Data channel is open");
     };
 
-    dc.onclose = () => {
+    webRTC.dataChannel.onclose = () => {
       console.log("Data channel is closed");
     };
 
-    dc.onmessage = (event) => {
+    webRTC.dataChannel.onmessage = (event) => {
       console.log("Message from data channel:", event.data);
     };
   }, []);
 
-  // create the webRTC peer connection offer
   const handleCreateRoom = useCallback(async () => {
-    if (!peerConnection) {
+    if (!webRTC.peerConnection) {
       alert(
         "Peer connection is not established, please try again. If the issue persists, please refresh the page."
       );
@@ -53,8 +43,8 @@ export default function CreateRoomPage() {
 
     setCreating(true);
 
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
+    const offer = await webRTC.peerConnection.createOffer();
+    await webRTC.peerConnection.setLocalDescription(offer);
 
     console.log("Creating room with offer:", offer);
 
@@ -74,7 +64,7 @@ export default function CreateRoomPage() {
       setCreating(false);
       console.log("Room created with ID:", response.data!.roomId);
     });
-  }, [peerConnection, nickname]);
+  }, [nickname]);
 
   const handleJoinRoom = useCallback(() => {}, []);
 

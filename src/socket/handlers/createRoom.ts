@@ -4,14 +4,14 @@ import {
   getFileContent,
   writeFileContent,
 } from "../../utils/fileManipulations";
+import { ErrorResponse, Room } from "../types";
 
 interface CreateRoomParams {
   offer: RTCSessionDescriptionInit;
   nickname: string;
 }
 
-export interface CreateRoomResponse {
-  error: string | null;
+export interface CreateRoomResponse extends ErrorResponse {
   data: {
     roomId: string;
   } | null;
@@ -21,7 +21,7 @@ const createRoom = (
   { nickname, offer }: CreateRoomParams,
   callback: (data: CreateRoomResponse) => void
 ) => {
-  const nicknames = getFileContent("nicknames");
+  const nicknames = getFileContent<Array<string>>("nicknames", []); // Use an empty array as the default content
 
   if (!nickname || !nickname.trim() || !nicknames.includes(nickname)) {
     callback({
@@ -33,7 +33,7 @@ const createRoom = (
   }
 
   const roomId = crypto.randomUUID();
-  const rooms = getFileContent("rooms");
+  const rooms = getFileContent<Record<string, Room>>("rooms", {}); // Use an empty object as the default content
 
   rooms[roomId] = {
     offer,

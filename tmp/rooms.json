@@ -1,1 +1,12 @@
-[]
+{
+  "18e359fb-cde7-408a-a54c-f0722e2814b6": {
+    "offer": {
+      "sdp": "v=0\r\no=- 3016858189851841741 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS\r\nm=application 9 UDP/DTLS/SCTP webrtc-datachannel\r\nc=IN IP4 0.0.0.0\r\na=ice-ufrag:WGlo\r\na=ice-pwd:5Nnyg5zX7LH4PbpJdMMUSCKx\r\na=ice-options:trickle\r\na=fingerprint:sha-256 1D:41:69:76:A2:0C:D3:68:98:44:BE:7F:0F:59:1E:60:C4:5C:D5:68:F3:7C:4B:C4:C4:14:8A:5C:FA:7F:CA:95\r\na=setup:actpass\r\na=mid:0\r\na=sctp-port:5000\r\na=max-message-size:262144\r\n",
+      "type": "offer"
+    },
+    "answer": null,
+    "peers": [
+      "mario"
+    ]
+  }
+}

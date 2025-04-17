@@ -1,17 +1,17 @@
 import fs from "fs";
 import path from "path";
 
-export function getFileContent(fileName: string) {
-  const NICKNAMES_FILE = path.join(process.cwd(), "tmp", `${fileName}.json`);
+export function getFileContent<T>(fileName: string, defaultContent: T): T {
+  const FILE = path.join(process.cwd(), "tmp", `${fileName}.json`);
 
-  if (!fs.existsSync(path.dirname(NICKNAMES_FILE))) {
-    fs.mkdirSync(path.dirname(NICKNAMES_FILE), { recursive: true });
+  if (!fs.existsSync(path.dirname(FILE))) {
+    return defaultContent;
   }
 
-  let nicknames = [];
+  let nicknames = defaultContent;
 
-  if (fs.existsSync(NICKNAMES_FILE)) {
-    const fileContent = fs.readFileSync(NICKNAMES_FILE, "utf-8");
+  if (fs.existsSync(FILE)) {
+    const fileContent = fs.readFileSync(FILE, "utf-8");
     nicknames = JSON.parse(fileContent);
   }
 
@@ -19,11 +19,7 @@ export function getFileContent(fileName: string) {
 }
 
 export function writeFileContent(fileName: string, data: unknown) {
-  const NICKNAMES_FILE = path.join(process.cwd(), "tmp", `${fileName}.json`);
+  const FILE = path.join(process.cwd(), "tmp", `${fileName}.json`);
 
-  if (!fs.existsSync(path.dirname(NICKNAMES_FILE))) {
-    fs.mkdirSync(path.dirname(NICKNAMES_FILE), { recursive: true });
-  }
-
-  fs.writeFileSync(NICKNAMES_FILE, JSON.stringify(data, null, 2));
+  fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
 }

@@ -3,10 +3,11 @@
 import { socket } from "@/socket";
 import { CreateRoomResponse } from "@/socket/handlers/createRoom";
 import { NICKNAME_STORAGE_KEY } from "@/utils/constants";
-import { Loader } from "lucide-react";
+import { Copy, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import webRTC from "@/webrtc";
+import { GetRoomResponse } from "@/socket/handlers/getRoom";
 
 export default function CreateRoomPage() {
   const router = useRouter();
@@ -15,20 +16,21 @@ export default function CreateRoomPage() {
   const [creating, setCreating] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   const [roomId, setRoomId] = useState("");
   const [nickname, setNickname] = useState("");
 
   const setupPeerConnection = useCallback(() => {
-    webRTC.dataChannel.onopen = () => {
+    webRTC.dataChannel!.onopen = () => {
       console.log("Data channel is open");
     };
 
-    webRTC.dataChannel.onclose = () => {
+    webRTC.dataChannel!.onclose = () => {
       console.log("Data channel is closed");
     };
 
-    webRTC.dataChannel.onmessage = (event) => {
+    webRTC.dataChannel!.onmessage = (event) => {
       console.log("Message from data channel:", event.data);
     };
   }, []);
@@ -66,7 +68,51 @@ export default function CreateRoomPage() {
     });
   }, [nickname]);
 
-  const handleJoinRoom = useCallback(() => {}, []);
+  const handleJoinRoom = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setJoining(true);
+
+    const form = new FormData(event.currentTarget);
+    const roomCode = form.get("roomCode")?.toString().trim() as string;
+
+    if (!roomCode) {
+      alert("Please enter a room code");
+      setJoining(false);
+      return;
+    }
+
+    socket.emit("get-room", { roomId: roomCode });
+
+    socket.on("get-room-response", (response: GetRoomResponse) => {
+      if (response.error) {
+        alert(response.error);
+        return;
+      }
+
+      const { offer } = response.data!;
+
+      webRTC.peerConnection!.setRemoteDescription(offer);
+
+      webRTC
+        .peerConnection!.createAnswer()
+        .then((answer) => {
+          webRTC.peerConnection!.setLocalDescription(answer);
+          socket.emit("send-answer", {
+            roomId: roomCode,
+            answer,
+            nickname,
+          });
+        })
+        .catch((error) => {
+          alert("Error creating answer:" + JSON.stringify(error, null, 2));
+          setJoining(false);
+        })
+        .finally(() => {
+          router.replace(`/room/${roomCode}`);
+        });
+    });
+  };
 
   const handleCopy = useCallback(() => {
     if (roomId) {
@@ -96,7 +142,7 @@ export default function CreateRoomPage() {
   }, [router]);
 
   useEffect(() => {
-    if (nickname) {
+    if (nickname && webRTC.peerConnection) {
       if (socket.connected) {
         onConnect();
       }
@@ -141,16 +187,19 @@ export default function CreateRoomPage() {
             title={!isConnected ? "Connecting to socket server" : ""}
             onClick={handleCreateRoom}
             disabled={!isConnected || creating || !!roomId}
-            className="w-full bg-gradient-to-r from-blue-500 to-violet-600 text-white py-3 rounded-lg font-semibold disabled:cursor-not-allowed shadow hover:scale-105 transition-transform disabled:opacity-50"
+            className="w-full bg-gradient-to-r cursor-pointer from-blue-500 to-violet-600 text-white py-3 rounded-lg font-semibold disabled:cursor-not-allowed shadow hover:scale-105 transition-transform disabled:opacity-50"
           >
-            {creating ? "Creating..." : "Generate Room Code"}
+            {creating ? "Creating..." : "Create Room Code"}
           </button>
 
           {roomId && (
             <div className="bg-green-100 p-4 rounded-lg border border-green-300 text-center">
-              <p className="text-lg font-medium text-green-800 mb-2">
-                Room Code:
+              <p className="font-medium text-green-800 mb-2">
+                Copy and share this room code with your friend, once him/her
+                join the room, you will be redirected to the room to start
+                chatting.
               </p>
+
               <div className="flex items-center justify-between space-x-2">
                 <input
                   type="text"
@@ -162,33 +211,37 @@ export default function CreateRoomPage() {
                   disabled={copied}
                   title={copied ? "Room code copied to clipboard" : ""}
                   onClick={handleCopy}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-lg text-sm font-semibold hover:bg-blue-600"
+                  className="bg-blue-500 text-white py-2 px-4 cursor-copy disabled:bg-gray-400 disabled:cursor-all-scroll rounded-lg text-sm font-semibold hover:bg-blue-600"
                 >
-                  {copied ? "Copied!" : "Copy"}
+                  <Copy className="inline" size={16} />
                 </button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="border-t border-gray-200 pt-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-700">Join Room</h2>
-          <form onSubmit={handleJoinRoom} className="space-y-4">
-            <input
-              type="text"
-              value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-              placeholder="Enter Room Code"
-            />
-            <button
-              type="submit"
-              className="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:scale-105 transition-transform"
-            >
-              Join Room
-            </button>
-          </form>
-        </div>
+        {!roomId && (
+          <div className="border-t border-gray-200 pt-6 space-y-4">
+            <h2 className="text-lg font-semibold text-gray-700">Join Room</h2>
+            <form onSubmit={handleJoinRoom} className="space-y-4">
+              <input
+                type="text"
+                required
+                name="roomCode"
+                disabled={!isConnected || joining}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                placeholder="Enter Room Code"
+              />
+              <button
+                disabled={!isConnected || joining}
+                type="submit"
+                className="w-full cursor-pointer disabled:cursor-all-scroll bg-gray-800 disabled:bg-gray-400 text-white py-3 rounded-lg font-semibold hover:scale-105 transition-transform"
+              >
+                Join Room
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,18 +1,28 @@
 /* eslint-disable no-var */
+"use client";
 
 declare global {
-  var peerConnection: RTCPeerConnection;
-  var dataChannel: RTCDataChannel;
+  var peerConnection: RTCPeerConnection | undefined;
+  var dataChannel: RTCDataChannel | undefined;
 }
 
-const peerConnection = globalThis.peerConnection || new RTCPeerConnection();
+const isBrowser = typeof window !== "undefined";
 
-const webRTC = {
-  peerConnection: peerConnection,
-  dataChannel: peerConnection.createDataChannel("templink-chat-channel"),
-}
+const peerConnection = isBrowser
+  ? globalThis.peerConnection || new RTCPeerConnection()
+  : undefined;
 
-if (process.env.NODE_ENV === 'development') {
+const webRTC = isBrowser
+  ? {
+      peerConnection: peerConnection!,
+      dataChannel: peerConnection!.createDataChannel("templink-chat-channel"),
+    }
+  : {
+      peerConnection: undefined,
+      dataChannel: undefined,
+    };
+
+if (isBrowser && process.env.NODE_ENV === "development") {
   globalThis.peerConnection = webRTC.peerConnection;
   globalThis.dataChannel = webRTC.dataChannel;
 }

@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const nicknames = getFileContent("nicknames");
+    const nicknames = getFileContent<Array<string>>("nicknames", []);
 
     if (nicknames.includes(nickname)) {
       return Response.json(

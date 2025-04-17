@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 
-import { createRoom } from "./src/socket/handlers";
+import { createRoom, getRoom, sendAnswer } from "./src/socket/handlers";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -29,6 +29,18 @@ app.prepare().then(() => {
         socket.emit("room-created", response);
       })
     );
+
+    socket.on("get-room", (data) =>
+      getRoom(data, (response) => {
+        socket.emit("get-room-response", response);
+      })
+    );
+
+    socket.on("create-answer", (data) => {
+      sendAnswer(data, (response) => {
+        console.log("Answer sent:", response);
+      });
+    });
   });
 
   httpServer

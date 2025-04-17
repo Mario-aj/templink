@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 
-import { createRoom, getRoom, sendAnswer } from "./src/socket/handlers";
+import { createRoom, getRoom, createAnswer } from "./src/socket/handlers";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -37,7 +37,7 @@ app.prepare().then(() => {
     );
 
     socket.on("create-answer", (data) => {
-      sendAnswer(data, (response) => {
+      createAnswer(data, (response) => {
         console.log("Answer sent:", response);
       });
     });

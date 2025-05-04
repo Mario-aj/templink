@@ -56,7 +56,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to access th
 
 ## Acknowledgements
 
-- Thanks to WebRTC for providing peer-to-peer communication.
+- Thanks to PeerJS for providing peer-to-peer communication.
 
 - Inspired by minimalistic, modern chat apps for seamless user experiences.
 
